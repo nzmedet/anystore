@@ -1,0 +1,13 @@
+{
+  "name": "@anystore/events",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anystore/domain": "workspace:*"
+  }
+}

@@ -1,0 +1,30 @@
+export const MetadataFieldKeyValues = [
+  "product_name",
+  "subtitle",
+  "short_description",
+  "full_description",
+  "promotional_text",
+  "keywords",
+  "support_url",
+  "marketing_url",
+  "privacy_policy_url",
+  "primary_category",
+  "secondary_category",
+  "content_rights_statement",
+  "release_notes",
+  "review_notes",
+  "review_contact_first_name",
+  "review_contact_last_name",
+  "review_contact_email",
+  "review_contact_phone",
+  "demo_account_username",
+  "demo_account_password",
+  "demo_account_notes",
+  "customer_support_email",
+  "customer_support_website",
+  "customer_support_phone",
+  "age_rating_answers",
+  "in_app_purchase_descriptions"
+] as const;
+
+export type MetadataFieldKey = (typeof MetadataFieldKeyValues)[number];

@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "noUncheckedIndexedAccess": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@anystore/domain": ["packages/domain/src/index.ts"],
+      "@anystore/domain/*": ["packages/domain/src/*"],
+      "@anystore/database": ["packages/database/src/index.ts"],
+      "@anystore/database/*": ["packages/database/src/*"],
+      "@anystore/config": ["packages/config/src/index.ts"],
+      "@anystore/config/*": ["packages/config/src/*"],
+      "@anystore/auth": ["packages/auth/src/index.ts"],
+      "@anystore/auth/*": ["packages/auth/src/*"],
+      "@anystore/ui": ["packages/ui/src/index.ts"],
+      "@anystore/ui/*": ["packages/ui/src/*"],
+      "@anystore/providers": ["packages/providers/src/index.ts"],
+      "@anystore/providers/*": ["packages/providers/src/*"],
+      "@anystore/validation": ["packages/validation/src/index.ts"],
+      "@anystore/validation/*": ["packages/validation/src/*"],
+      "@anystore/rendering": ["packages/rendering/src/index.ts"],
+      "@anystore/rendering/*": ["packages/rendering/src/*"],
+      "@anystore/events": ["packages/events/src/index.ts"],
+      "@anystore/events/*": ["packages/events/src/*"],
+      "@anystore/testing": ["packages/testing/src/index.ts"],
+      "@anystore/testing/*": ["packages/testing/src/*"]
+    }
+  },
+  "exclude": ["node_modules", ".next", "dist"]
+}

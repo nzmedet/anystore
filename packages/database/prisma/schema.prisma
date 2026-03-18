@@ -1,0 +1,488 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Platform {
+  ios
+  android
+}
+
+enum Provider {
+  app_store_connect
+  google_play
+}
+
+enum MemberRole {
+  owner
+  admin
+  editor
+  reviewer
+  viewer
+}
+
+enum MetadataScopeType {
+  app_draft
+  release_snapshot
+}
+
+enum ReleaseStatus {
+  draft
+  preparing
+  validation_failed
+  ready_to_sync
+  sync_in_progress
+  synced
+  submitted
+  in_review
+  approved
+  published
+  rejected
+  superseded
+  archived
+}
+
+enum FreezeState {
+  mutable
+  frozen
+}
+
+enum SubmissionStatus {
+  not_submitted
+  draft
+  submitted
+  in_review
+  approved
+  rejected
+  live
+}
+
+enum SyncJobStatus {
+  queued
+  running
+  succeeded
+  partially_failed
+  failed
+  cancelled
+}
+
+enum RenderJobStatus {
+  queued
+  running
+  succeeded
+  failed
+  cancelled
+}
+
+enum ValidationSeverity {
+  error
+  warning
+  info
+}
+
+enum ValidationCategory {
+  schema
+  completeness
+  consistency
+  provider
+  screenshots
+  compliance
+  sync
+}
+
+enum ValidationIssueStatus {
+  active
+  acknowledged
+  resolved
+}
+
+enum AssetType {
+  icon_source
+  icon_output
+  screenshot_source
+  screenshot_output
+  screenshot_background
+  feature_graphic
+  preview_video
+  generic
+}
+
+enum AssetStatus {
+  pending_upload
+  ready
+  processing
+  stale
+  failed
+  archived
+}
+
+enum BuildSourceProvider {
+  manual
+  eas
+  fastlane
+  github_actions
+  xcode_cloud
+  other
+}
+
+enum AppStatus {
+  active
+  archived
+}
+
+enum AppPlatformStatus {
+  connected
+  not_connected
+  misconfigured
+}
+
+enum AppLocaleStatus {
+  active
+  inactive
+}
+
+enum ProviderConnectionStatus {
+  connected
+  expired
+  invalid
+  pending
+}
+
+model User {
+  id            String   @id
+  email         String   @unique
+  passwordHash  String?  @map("password_hash")
+  displayName   String?  @map("display_name")
+  avatarUrl     String?  @map("avatar_url")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  ownedWorkspaces Workspace[]      @relation("WorkspaceOwner")
+  memberships     WorkspaceMember[]
+  createdReleases Release[]        @relation("ReleaseCreatedBy")
+
+  @@map("users")
+}
+
+model Workspace {
+  id          String   @id
+  name        String
+  slug        String   @unique
+  ownerUserId String   @map("owner_user_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  owner               User                 @relation("WorkspaceOwner", fields: [ownerUserId], references: [id])
+  members             WorkspaceMember[]
+  apps                App[]
+  providerConnections ProviderConnection[]
+  auditEvents         AuditEvent[]
+
+  @@map("workspaces")
+}
+
+model WorkspaceMember {
+  id          String     @id
+  workspaceId String     @map("workspace_id")
+  userId      String     @map("user_id")
+  role        MemberRole
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@unique([workspaceId, userId])
+  @@map("workspace_members")
+}
+
+model App {
+  id                   String    @id
+  workspaceId          String    @map("workspace_id")
+  slug                 String
+  internalName         String    @map("internal_name")
+  canonicalProductName String    @map("canonical_product_name")
+  primaryLocale        String    @map("primary_locale")
+  status               AppStatus
+  archivedAt           DateTime? @map("archived_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  workspace         Workspace          @relation(fields: [workspaceId], references: [id])
+  platforms         AppPlatform[]
+  locales           AppLocale[]
+  metadataDocuments MetadataDocument[]
+  assets            Asset[]
+  releases          Release[]
+  reviewProfiles    ReviewProfile[]
+  buildArtifacts    BuildArtifact[]
+  auditEvents       AuditEvent[]
+
+  @@unique([workspaceId, slug])
+  @@map("apps")
+}
+
+model AppPlatform {
+  id                       String            @id
+  appId                    String            @map("app_id")
+  platform                 Platform
+  bundleOrPackageId        String            @map("bundle_or_package_id")
+  storeAccountConnectionId String?           @map("store_account_connection_id")
+  remoteAppId              String?           @map("remote_app_id")
+  defaultTrack             String?           @map("default_track")
+  status                   AppPlatformStatus
+  createdAt                DateTime          @default(now()) @map("created_at")
+  updatedAt                DateTime          @updatedAt @map("updated_at")
+
+  app                App                 @relation(fields: [appId], references: [id])
+  providerConnection ProviderConnection? @relation(fields: [storeAccountConnectionId], references: [id])
+  remoteSnapshots    RemoteSnapshot[]
+
+  @@unique([appId, platform])
+  @@map("app_platforms")
+}
+
+model AppLocale {
+  id         String          @id
+  appId      String          @map("app_id")
+  localeCode String          @map("locale_code")
+  status     AppLocaleStatus
+  createdAt  DateTime        @default(now()) @map("created_at")
+
+  app App @relation(fields: [appId], references: [id])
+
+  @@unique([appId, localeCode])
+  @@map("app_locales")
+}
+
+model MetadataDocument {
+  id        String            @id
+  appId     String            @map("app_id")
+  scopeType MetadataScopeType @map("scope_type")
+  scopeId   String            @map("scope_id")
+  version   Int               @default(1)
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
+
+  app     App             @relation(fields: [appId], references: [id])
+  entries  MetadataEntry[]
+
+  @@unique([appId, scopeType, scopeId])
+  @@map("metadata_documents")
+}
+
+model MetadataEntry {
+  id                 String    @id
+  metadataDocumentId String    @map("metadata_document_id")
+  localeCode         String?   @map("locale_code")
+  platform           Platform?
+  fieldKey           String    @map("field_key")
+  valueJson          Json      @map("value_json")
+  sourceLayer        String    @map("source_layer")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  metadataDocument MetadataDocument @relation(fields: [metadataDocumentId], references: [id], onDelete: Cascade)
+
+  @@index([metadataDocumentId, localeCode, platform, fieldKey])
+  @@map("metadata_entries")
+}
+
+model Release {
+  id             String        @id
+  appId          String        @map("app_id")
+  versionLabel   String        @map("version_label")
+  releaseName    String?       @map("release_name")
+  status         ReleaseStatus
+  freezeState    FreezeState   @map("freeze_state")
+  sourceReleaseId String?      @map("source_release_id")
+  createdBy      String        @map("created_by")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  app              App                   @relation(fields: [appId], references: [id])
+  creator          User                  @relation("ReleaseCreatedBy", fields: [createdBy], references: [id])
+  sourceRelease    Release?              @relation("ReleaseClone", fields: [sourceReleaseId], references: [id])
+  clonedReleases   Release[]             @relation("ReleaseClone")
+  platformStates   ReleasePlatformState[]
+  validationIssues ValidationIssue[]
+  assets           Asset[]
+  syncJobs         SyncJob[]
+  auditEvents      AuditEvent[]
+
+  @@unique([appId, versionLabel])
+  @@map("releases")
+}
+
+model ReleasePlatformState {
+  id                 String           @id
+  releaseId          String           @map("release_id")
+  platform           Platform
+  targetTrack        String?          @map("target_track")
+  desiredVersionName String?          @map("desired_version_name")
+  desiredBuildNumber String?          @map("desired_build_number")
+  attachedBuildId    String?          @map("attached_build_id")
+  submissionStatus   SubmissionStatus @map("submission_status")
+  syncStatus         SyncJobStatus?   @map("sync_status")
+  reviewStatus       SubmissionStatus? @map("review_status")
+  remoteReleaseId    String?          @map("remote_release_id")
+  lastSyncAt         DateTime?        @map("last_sync_at")
+
+  release Release       @relation(fields: [releaseId], references: [id])
+  build   BuildArtifact? @relation(fields: [attachedBuildId], references: [id])
+
+  @@unique([releaseId, platform])
+  @@map("release_platform_states")
+}
+
+model Asset {
+  id            String      @id
+  appId         String      @map("app_id")
+  releaseId     String?     @map("release_id")
+  sourceAssetId String?     @map("source_asset_id")
+  assetType     AssetType   @map("asset_type")
+  status        AssetStatus
+  platform      Platform?
+  localeCode    String?     @map("locale_code")
+  deviceClass   String?     @map("device_class")
+  mimeType      String      @map("mime_type")
+  objectKey     String      @map("object_key")
+  checksum      String
+  width         Int?
+  height        Int?
+  fileSizeBytes Int?        @map("file_size_bytes")
+  lineageJson   Json?       @map("lineage_json")
+  createdBy     String?     @map("created_by")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  app          App      @relation(fields: [appId], references: [id])
+  release      Release? @relation(fields: [releaseId], references: [id])
+  sourceAsset  Asset?   @relation("AssetLineage", fields: [sourceAssetId], references: [id])
+  derivedAssets Asset[] @relation("AssetLineage")
+
+  @@map("assets")
+}
+
+model BuildArtifact {
+  id             String              @id
+  appId          String              @map("app_id")
+  platform       Platform
+  versionName    String              @map("version_name")
+  buildNumber    String              @map("build_number")
+  artifactUri    String?             @map("artifact_uri")
+  sourceProvider BuildSourceProvider @map("source_provider")
+  gitCommitSha   String?             @map("git_commit_sha")
+  gitTag         String?             @map("git_tag")
+  branch         String?
+  createdAt      DateTime            @default(now()) @map("created_at")
+
+  app           App                    @relation(fields: [appId], references: [id])
+  attachedTo    ReleasePlatformState[]
+
+  @@map("build_artifacts")
+}
+
+model ValidationIssue {
+  id              String                @id
+  releaseId       String                @map("release_id")
+  platform        Platform?
+  localeCode      String?               @map("locale_code")
+  severity        ValidationSeverity
+  category        ValidationCategory
+  code            String
+  message         String
+  remediationHint String?               @map("remediation_hint")
+  pathReference   String?               @map("path_reference")
+  status          ValidationIssueStatus
+  detectedAt      DateTime              @default(now()) @map("detected_at")
+  resolvedAt      DateTime?             @map("resolved_at")
+
+  release Release @relation(fields: [releaseId], references: [id])
+
+  @@map("validation_issues")
+}
+
+model ProviderConnection {
+  id              String                   @id
+  workspaceId     String                   @map("workspace_id")
+  provider        Provider
+  label           String
+  status          ProviderConnectionStatus
+  credentialsJson Json?                    @map("credentials_json")
+  createdAt       DateTime                 @default(now()) @map("created_at")
+  updatedAt       DateTime                 @updatedAt @map("updated_at")
+
+  workspace Workspace     @relation(fields: [workspaceId], references: [id])
+  appPlatforms AppPlatform[]
+
+  @@map("provider_connections")
+}
+
+model RemoteSnapshot {
+  id           String    @id
+  appPlatformId String   @map("app_platform_id")
+  releaseId    String?   @map("release_id")
+  provider     Provider
+  snapshotType String    @map("snapshot_type")
+  checksum     String
+  payloadJson  Json      @map("payload_json")
+  fetchedAt    DateTime  @default(now()) @map("fetched_at")
+
+  appPlatform AppPlatform @relation(fields: [appPlatformId], references: [id])
+
+  @@map("remote_snapshots")
+}
+
+model SyncJob {
+  id          String        @id
+  releaseId   String        @map("release_id")
+  status      SyncJobStatus
+  planJson    Json          @map("plan_json")
+  errorJson   Json?         @map("error_json")
+  startedAt   DateTime?     @map("started_at")
+  completedAt DateTime?     @map("completed_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  release Release @relation(fields: [releaseId], references: [id])
+
+  @@map("sync_jobs")
+}
+
+model ReviewProfile {
+  id                 String   @id
+  appId              String   @map("app_id")
+  contactFirstName   String?  @map("contact_first_name")
+  contactLastName    String?  @map("contact_last_name")
+  contactEmail       String?  @map("contact_email")
+  contactPhone       String?  @map("contact_phone")
+  demoUsername       String?  @map("demo_username")
+  demoPassword       String?  @map("demo_password")
+  demoNotes          String?  @map("demo_notes")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  app App @relation(fields: [appId], references: [id])
+
+  @@map("review_profiles")
+}
+
+model AuditEvent {
+  id          String   @id
+  workspaceId String   @map("workspace_id")
+  appId       String?  @map("app_id")
+  releaseId   String?  @map("release_id")
+  actorUserId String?  @map("actor_user_id")
+  eventType   String   @map("event_type")
+  payloadJson Json?    @map("payload_json")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  app       App?      @relation(fields: [appId], references: [id])
+  release   Release?  @relation(fields: [releaseId], references: [id])
+
+  @@map("audit_events")
+}
