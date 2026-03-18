@@ -7,13 +7,13 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Get('session')
-  getSession() {
-    return envelope(this.authService.getSession())
+  async getSession() {
+    return envelope(await this.authService.getSession())
   }
 
   @Post('sign-in')
-  signIn(@Body() body: { email?: string; displayName?: string }) {
-    return envelope(this.authService.signIn(body))
+  async signIn(@Body() body: { email?: string; displayName?: string }) {
+    return envelope(await this.authService.signIn(body))
   }
 
   @Post('sign-out')

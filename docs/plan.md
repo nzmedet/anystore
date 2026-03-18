@@ -39,74 +39,74 @@ Build in this order because each later system depends on the earlier contracts:
 ### Day 1: Foundation and Contracts
 
 **Epic: Platform Bootstrap**
-- Create monorepo foundation for web, API, worker, and shared packages
-- Wire pnpm, turbo, TypeScript, env parsing, Docker local services
-- Establish shared enums, DTOs, Zod schemas, queue payloads, and event names
++ Create monorepo foundation for web, API, worker, and shared packages
++ Wire pnpm, turbo, TypeScript, env parsing, Docker local services
++ Establish shared enums, DTOs, Zod schemas, queue payloads, and event names
 - Lock branch/task ownership for parallel agents
 
 **Epic: Domain and Schema**
-- Implement Prisma schema for workspaces, apps, locales, metadata documents/entries, releases, platform states, assets, provider connections, remote snapshots, validation issues, sync jobs, audit events, and review profiles
-- Encode release snapshot invariants and uniqueness constraints
-- Seed one demo workspace/app/release path
++ Implement Prisma schema for workspaces, apps, locales, metadata documents/entries, releases, platform states, assets, provider connections, remote snapshots, validation issues, sync jobs, audit events, and review profiles
++ Encode release snapshot invariants and uniqueness constraints
++ Seed one demo workspace/app/release path
 
 **Acceptance Criteria**
-- Project boots locally
-- Database migrates cleanly
-- Shared contracts compile without drift
-- Demo seed creates a usable workspace/app/release baseline
++ Project boots locally
++ Database migrates cleanly
++ Shared contracts compile without drift
++ Demo seed creates a usable workspace/app/release baseline
 
 ### Day 2: Auth, RBAC, and Core CRUD API
 
 **Epic: Auth and Access**
-- Implement session auth
++ Implement session auth
 - Implement workspace-scoped RBAC for owner/admin/editor/reviewer/viewer
 - Enforce sensitive-field masking for reviewer/demo credentials
 
 **Epic: Core API**
-- Implement REST modules for workspaces, apps, locales, metadata, releases
-- Add audit event writes for create/update/archive operations
-- Add consistent response and error envelopes
++ Implement REST modules for workspaces, apps, locales, metadata, releases
++ Add audit event writes for create/update/archive operations
++ Add consistent response and error envelopes
 
 **Acceptance Criteria**
-- User can sign in
-- User can create workspace, app, locales, and release
-- Metadata draft can be read and updated
-- Audit log records the main mutations
++ User can sign in
++ User can create workspace, app, locales, and release
++ Metadata draft can be read and updated
++ Audit log records the main mutations
 - Unauthorized actions are blocked correctly
 
 ### Day 3: Web Shell and Core Product Flows
 
 **Epic: Web App Core**
-- Build authenticated dashboard shell, app list, app detail, release list/detail, metadata editor, activity view
-- Show effective metadata with source-awareness
++ Build authenticated dashboard shell, app list, app detail, release list/detail, metadata editor, activity view
++ Show effective metadata with source-awareness
 - Add form validation and loading/error states
 
 **Epic: Release Operations Core**
-- Implement release cloning
-- Implement release snapshot creation/freeze workflow
++ Implement release cloning
++ Implement release snapshot creation/freeze workflow
 - Expose release platform state editing for version/build/track targets
 
 **Acceptance Criteria**
 - A user can complete the core flow in UI: create app -> edit draft metadata -> create release -> clone release -> freeze snapshot
-- UI uses real API data, not mocks
-- Release details show readiness state placeholders and activity timeline
++ UI uses real API data, not mocks
++ Release details show readiness state placeholders and activity timeline
 
 ### Day 4: Validation Engine and Asset Pipeline
 
 **Epic: Validation**
 - Implement validation runner with initial rule families:
-  - metadata completeness
+  + metadata completeness
   - provider-required field presence
   - release consistency
   - asset completeness
-  - review/compliance basics
-- Persist issues and surface blocking vs warning states in API/UI
+  + review/compliance basics
++ Persist issues and surface blocking vs warning states in API/UI
 
 **Epic: Assets**
 - Implement signed upload flow to object storage
 - Persist asset records, checksums, dimensions, and lineage fields
 - Attach assets to app/release contexts
-- Add worker queue skeleton for asset-related jobs
++ Add worker queue skeleton for asset-related jobs
 
 **Acceptance Criteria**
 - User can upload/store source assets
@@ -117,18 +117,18 @@ Build in this order because each later system depends on the earlier contracts:
 ### Day 5: Provider Foundation, Remote Snapshots, and Diff
 
 **Epic: Provider Abstraction**
-- Implement provider capability contracts and adapter interface
-- Add Apple and Google adapters with normalized read/snapshot methods first
++ Implement provider capability contracts and adapter interface
++ Add Apple and Google adapters with normalized read/snapshot methods first
 - Implement provider credential storage and secure access path
 
 **Epic: Remote Reconciliation**
 - Fetch remote listing/release data into normalized remote snapshots
 - Build diff engine for metadata, assets, and release state
-- Generate dry-run sync plans with explicit operations and blocking items
++ Generate dry-run sync plans with explicit operations and blocking items
 
 **Acceptance Criteria**
 - For at least one narrow app path, the system can connect provider credentials, fetch remote state, store snapshots, and show a useful diff
-- Dry-run sync plan is inspectable in UI/API
++ Dry-run sync plan is inspectable in UI/API
 - No real provider writes are required for beta success
 
 ### Day 6: Beta Hardening and Narrow Real Sync Path
@@ -203,15 +203,15 @@ Defer until the foundation is proven:
 
 Week-1 implementation should expose:
 
-- REST routes for auth, workspaces, apps, metadata, releases, assets, validation, providers, sync, and activity
-- Shared domain contracts for:
++ REST routes for auth, workspaces, apps, metadata, releases, assets, validation, providers, sync, and activity
++ Shared domain contracts for:
   - release status and freeze state
   - metadata field keys and effective resolution
   - validation issue shape
   - provider capability map
   - normalized remote snapshot
   - sync diff items and sync plan items
-- Queue contracts for:
++ Queue contracts for:
   - validation jobs
   - remote snapshot fetch jobs
   - sync planning/execution jobs

@@ -7,11 +7,12 @@
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "db:generate": "pnpm --filter @anystore/database exec prisma generate",
-    "db:migrate": "pnpm --filter @anystore/database exec prisma migrate dev",
-    "db:seed": "pnpm --filter @anystore/database seed"
+    "db:generate": "dotenv -e .env -- pnpm --filter @anystore/database exec prisma generate",
+    "db:migrate": "dotenv -e .env -- pnpm --filter @anystore/database exec prisma migrate dev",
+    "db:seed": "dotenv -e .env -- pnpm --filter @anystore/database seed"
   },
   "devDependencies": {
+    "dotenv-cli": "^8.0.0",
     "@types/node": "^24.0.0",
     "prettier": "^3.6.2",
     "turbo": "^2.5.6",

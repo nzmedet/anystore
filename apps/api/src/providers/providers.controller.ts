@@ -12,22 +12,22 @@ export class ProvidersController {
   }
 
   @Get('connections')
-  listConnections(@Query('workspaceId') workspaceId?: string) {
-    return envelope(this.providersService.listConnections(workspaceId))
+  async listConnections(@Query('workspaceId') workspaceId?: string) {
+    return envelope(await this.providersService.listConnections(workspaceId))
   }
 
   @Post('connections')
-  createConnection(@Body() body: { workspaceId: string; provider: 'app_store_connect' | 'google_play' }) {
-    return envelope(this.providersService.createConnection(body))
+  async createConnection(@Body() body: { workspaceId: string; provider: 'app_store_connect' | 'google_play' }) {
+    return envelope(await this.providersService.createConnection(body))
   }
 
   @Get('connections/:connectionId')
-  getConnection(@Param('connectionId') connectionId: string) {
-    return envelope(this.providersService.getConnection(connectionId))
+  async getConnection(@Param('connectionId') connectionId: string) {
+    return envelope(await this.providersService.getConnection(connectionId))
   }
 
   @Patch('connections/:connectionId')
-  updateConnection(@Param('connectionId') connectionId: string, @Body() body: { status?: 'connected' | 'expired' | 'invalid' | 'pending' }) {
-    return envelope(this.providersService.updateConnection(connectionId, body))
+  async updateConnection(@Param('connectionId') connectionId: string, @Body() body: { status?: 'connected' | 'expired' | 'invalid' | 'pending' }) {
+    return envelope(await this.providersService.updateConnection(connectionId, body))
   }
 }
